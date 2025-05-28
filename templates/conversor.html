@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='conversor.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Botón de volver -->
+    <button onclick="history.back()" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>
+
+    <!-- Fondo translúcido -->
+    <div class="background-overlay"></div>
+
+    <!-- Contenido centrado -->
+    <div class="wrapper">
+        <form class="conversor-form" method="POST" enctype="multipart/form-data">
+            <h2><i class="fa fa-exchange-alt"></i> Conversor</h2>
+
+            <div class="form-group">
+                <label for="servicio"><i class="fa fa-satellite-dish"></i> Servicio</label>
+                <select name="servicio" id="servicio" required>
+                    {% for s in services %}
+                    <option value="{{ s }}">{{ s.replace('_', ' ') }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="prog_file"><i class="fa fa-paperclip"></i> Archivo de Programación (.xlsx)</label>
+                <input type="file" name="prog_file" id="prog_file" accept=".xlsx" required>
+            </div>
+
+            <button type="submit"><i class="fa fa-cogs"></i> Generar Programación</button>
+
+            {% if download_url %}
+            <div class="download">
+                <a href="{{ download_url }}"><i class="fa fa-download"></i> Descargar archivo generado</a>
+            </div>
+            {% endif %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+        </form>
+    </div>
+</body>
+</html>

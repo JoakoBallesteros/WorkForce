@@ -1,0 +1,138 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  background: url("/static/img/fondo_login.jpeg") no-repeat center center fixed;
+  background-size: cover;
+  height: 100vh;
+  position: relative;
+}
+
+/* Overlay azul oscuro */
+body::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 42, 89, 0.5);
+  z-index: 0;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.login {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  width: 320px;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 1s ease-out;
+  transition: border 0.3s ease;
+}
+
+.login:hover {
+  border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login .title {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.animated-input {
+  position: relative;
+  margin-bottom: 2rem;
+  display: block;
+}
+
+.animated-input input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  font-size: 1rem;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  background: transparent;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.animated-input input:focus {
+  border-color: #2196F3;
+}
+
+.animated-input span {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: 0.2s ease all;
+  pointer-events: none;
+  color: #ccc;
+  background: transparent;
+  padding: 0 5px;
+}
+
+.animated-input input:focus + span,
+.animated-input input:not(:placeholder-shown) + span {
+  top: -10px;
+  left: 35px;
+  font-size: 0.75rem;
+  color: #2196F3;
+}
+
+.animated-input i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ccc;
+  font-size: 1rem;
+}
+
+.login button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(45deg, #2196F3, #21CBF3);
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login button:hover {
+  background: linear-gradient(45deg, #21CBF3, #2196F3);
+}
+
+.flash-messages {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: red;
+}
+

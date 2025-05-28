@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+  
+</head>
+<body> 
+  <div class="wrapper">
+    <form class="login" method="POST" action="{{ url_for('login') }}">
+      <p class="title"><i class="fa fa-user-circle"></i> Iniciar Sesión</p>
+
+      <label class="animated-input">
+        <input type="email"
+               name="username"
+               placeholder=" "
+               required
+               pattern="[a-zA-Z]+\.[a-zA-Z]+@konecta\.com"
+               title="Formato: nombre.apellido@konecta.com">
+        <span>Usuario</span>
+        <i class="fa fa-user"></i>
+      </label>
+
+      <label class="animated-input">
+        <input type="password"
+               name="password"
+               placeholder=" "
+               required>
+        <span>Contraseña</span>
+        <i class="fa fa-lock"></i>
+      </label>
+
+      <button type="submit">
+        <span class="state">Iniciar Sesión</span>
+      </button>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='programacion.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Botón pequeño de “Volver” -->
+    <button onclick="history.back()" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>
+
+    <!-- Fondo azul traslúcido -->
+    <div class="background-overlay"></div>
+
+    <!-- Contenedor centrado -->
+    <div class="wrapper">
+        <form class="form-box" method="POST" enctype="multipart/form-data">
+            <h2><i class="fa fa-calendar-alt"></i> Generador de Programacion</h2>
+
+            <div class="form-group">
+                <label for="servicio"><i class="fa fa-sitemap"></i> Servicio</label>
+                <select name="servicio" id="servicio" required>
+                    <option disabled selected>Selecciona un servicio</option>
+                    <option value="Sop_Conectividad">Sop Conectividad</option>
+                    <option value="Sop_Flow">Sop Flow</option>
+                    <option value="Esp_CATV">Esp CATV</option>
+                    <option value="Esp_Movil">Esp Móvil</option>
+                    <option value="Esp_XDSL">Esp XDSL</option>
+                    <option value="Digital">Digital</option>
+                    <option value="CBS">CBS</option>
+                    <option value="SMB_TecnicaIN">SMB Técnica IN</option>
+                    <option value="SMB_Digital">SMB Digital</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="requeridos"><i class="fa fa-file-excel"></i> Archivo Requeridos (.xlsx)</label>
+                <input type="file" name="requeridos" id="requeridos" accept=".xlsx" required>
+            </div>
+
+            <button type="submit" class="btn-submit"><i class="fa fa-play"></i> Procesar</button>
+
+            {% if download_url %}
+            <div class="download">
+                <a href="{{ download_url }}"><i class="fa fa-download"></i> Descargar programación</a>
+            </div>
+            {% endif %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+        </form>
+    </div>
+</body>
+</html>

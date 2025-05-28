@@ -1,0 +1,102 @@
+/* 1) (Opcional) Si no quieres tocar el <head>, importa aquí la fuente: */
+@import url("https://fonts.googleapis.com/css2?family=REM:ital,wght@0,100..900;1,100..900&display=swap");
+
+/* 2) Establece REM como fuente global */
+html {
+  font-family: "REM", "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;    /* peso base */
+  font-style: normal;  /* estilo base */
+}
+
+/* 3) Tu CSS existente, sin tocar font-family en body */
+body {
+  margin: 0;
+  /* font-family: 'Open Sans', sans-serif; */  /* ¡lo comentamos! */
+  background: url("/static/img/fondo_login.jpeg") no-repeat center center fixed;
+  background-size: cover;
+  height: 100vh;
+  position: relative;
+}
+
+/* ...el resto igual... */
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 42, 89, 0.5);
+  z-index: 0;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  z-index: 1;
+  position: relative;
+}
+
+.selector-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 2rem;
+  max-width: 700px;
+  width: 90%;
+  color: #fff;
+  text-align: center;
+  animation: fadeIn 1s ease-out;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.selector-card h2 {
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.logo-option {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1.2rem;
+  text-decoration: none;
+  color: #fff;
+  width: 180px;
+  transition: transform 0.3s ease, background 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.logo-option:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.logo-option img {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.logo-option p {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #fff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

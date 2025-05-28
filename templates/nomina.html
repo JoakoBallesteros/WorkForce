@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='nomina.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+</head>
+<body>
+  <div class="wrapper">
+    <form method="POST" enctype="multipart/form-data" class="nomina-card">
+      <h2><i class="fa fa-file-excel"></i> Carga de Nómina</h2>
+      <p>Sube archivo nómina (.xlsx)</p>
+
+      <label class="file-input">
+        <input type="file" name="nomina" accept=".xlsx" required>
+        <span><i class="fa fa-upload"></i> Seleccionar archivo</span>
+      </label>
+
+      <button type="submit" class="submit-btn">
+        <i class="fa fa-cloud-upload-alt"></i> Subir Nómina
+      </button>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+    </form>
+  </div>
+</body>
+</html>
+

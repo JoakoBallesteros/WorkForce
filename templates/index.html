@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='menu.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/logo.png') }}" type="image/x-icon">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="menu-card">
+      <a class="back-button" href="{{ url_for('selector') }}"><i class="fa fa-arrow-left"></i> Volver</a>
+
+      <h1>Menú Principal</h1>
+      <div class="menu-grid">
+        <div class="menu-item">
+          <i class="fa fa-calendar-alt"></i>
+          <h3>Programación</h3>
+          <p>Genera y descarga tu programación</p>
+          <a href="{{ programacion_url }}">Ir a Programación</a>
+        </div>
+        <div class="menu-item">
+          <i class="fa fa-random"></i>
+          <h3>Conversor</h3>
+          <p>Accede al conversor de formatos</p>
+          <a href="{{ conversor_url }}">Ir al Conversor</a>
+        </div>
+      </div>
+
+      <a class="logout" href="{{ url_for('logout') }}">
+        <i class="fa fa-sign-out-alt"></i> Cerrar sesión
+      </a>
+    </div>
+  </div>
+</body>
+</html>

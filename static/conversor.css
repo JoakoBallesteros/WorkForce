@@ -1,0 +1,139 @@
+/* Fondo general */
+body {
+  margin: 0;
+  font-family: 'Open Sans', sans-serif;
+  background: url("/static/img/fondo_login.jpeg") no-repeat center center fixed;
+  background-size: cover;
+  height: 100vh;
+  position: relative;
+}
+
+/* Capa azul oscuro translúcida */
+.background-overlay {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 42, 89, 0.5);
+  z-index: 0;
+}
+
+/* Contenedor centrado */
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  z-index: 1;
+  position: relative;
+}
+
+/* Caja del formulario */
+.conversor-form {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 2rem;
+  width: 400px;
+  color: #fff;
+  animation: fadeIn 0.8s ease-out;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.conversor-form h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-group select,
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.85);
+  color: #333;
+}
+
+/* Botón de envío */
+.conversor-form button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(45deg, #2196F3, #21CBF3);
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 1rem;
+}
+
+.conversor-form button:hover {
+  background: linear-gradient(45deg, #21CBF3, #2196F3);
+}
+
+/* Enlace de descarga */
+.download {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.download a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.download a:hover {
+  color: #21CBF3;
+}
+
+/* Mensajes flash */
+.flash-messages {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #ffdddd;
+}
+
+/* Animación entrada */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botón de volver */
+.btn-back {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.4);
+}

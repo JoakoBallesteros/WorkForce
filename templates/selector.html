@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='selector.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="selector-card">
+      <h2>¿Qué servicio querés utilizar?</h2>
+
+     <form method="post" action="{{ url_for('selector') }}">
+  <div class="logo-container">
+    {% for key, label in opciones %}
+      <button type="submit" name="servicio" value="{{ key }}" class="logo-option">
+        <img src="{{ url_for('static', filename='img/' + key + '.png') }}"
+             alt="{{ label }}">
+        <p>{{ label }}</p>
+      </button>
+    {% endfor %}
+  </div>
+</form>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flashes">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+    </div>
+  </div>
+</body>
+</html>
