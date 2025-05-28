@@ -1,0 +1,10 @@
+[project]
+start_command = "gunicorn app:app"
+
+[phases.setup]
+packages = ["python3", "pip"]
+
+[phases.build]
+commands = [
+  "pip install -r requirements.txt"
+]
