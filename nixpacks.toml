@@ -1,5 +1,5 @@
 [project]
-start_command = "gunicorn app:app"
+start_command = "gunicorn app:app --bind 0.0.0.0:$PORT"
 
 [phases.setup]
 packages = ["python3", "pip"]
