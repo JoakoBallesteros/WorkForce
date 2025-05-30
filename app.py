@@ -9,13 +9,14 @@ from services import SERVICES, SERVICE_LABELS
 from blueprints.conversor import conversor_bp
 from blueprints.personal_prog import personal_bp
 from blueprints.sancristobal_prog import sancristobal_bp
-
+from blueprints.curvas import curvas_bp
 # TODO: importar e insertar aquí otros blueprints (e.g. lacaja_bp, sancor_bp, ...)
 
 default_blueprints = [
     conversor_bp,
     personal_bp,
     sancristobal_bp,
+    curvas_bp
     # agregar otros blueprints aquí...
 ]
 
@@ -119,12 +120,14 @@ def menu():
     provider = session['servicio'].lower()
     programacion_url = url_for(f"{provider}.programacion")
     conversor_url     = url_for("conversor.conversor")
+    curvas_url       = url_for("curvas.index")
 
     return render_template(
         'index.html',
         title='Menú Principal',
         programacion_url=programacion_url,
-        conversor_url=conversor_url
+        conversor_url=conversor_url,
+        curvas_url=curvas_url
     )
 
 @app.route('/logout')

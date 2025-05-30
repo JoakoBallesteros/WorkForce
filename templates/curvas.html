@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gráfico Interactivo desde Excel</title>
+  <style>
+    body { margin: 0; background: #0d2a3d; font-family: sans-serif; color: white; }
+    .selector { text-align: center; margin: 20px auto; }
+    select, input[type=file], button { padding: 5px 10px; font-size: 14px; margin: 0 10px; }
+    canvas { display: block; margin: 10px auto; border: 1px solid #ccc; background: #0d2a3d; }
+    .tooltip { position: absolute; background: rgba(20,20,20,0.95); color: #eee; padding: 4px 8px; border-radius: 4px; font-size: 12px; pointer-events: none; display: none; z-index: 10; }
+    .legend { text-align: center; margin-top: 10px; }
+    .legend span { display: inline-block; margin: 0 12px; font-size: 14px; }
+    .box { width: 12px; height: 12px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <div class="selector">
+    <input type="file" id="fileInput" accept=".xlsx" />
+    <label for="dia">Seleccionar día:</label>
+    <select id="dia" disabled></select>
+    <button id="download" disabled>Descargar PDF</button>
+  </div>
+
+  <h2 id="chartTitle" style="text-align:center; margin-top:10px; color: #fff;">Gráfico</h2>
+  <canvas id="grafico" width="1000" height="400"></canvas>
+  <div id="tooltip" class="tooltip"></div>
+  <div class="legend">
+    <span><span class="box" style="background:#ffffff"></span> Asignados</span>
+    <span><span class="box" style="background:#999"></span> Requeridos</span>
+    <span><span class="box" style="background:#FF6347; border-bottom:2px dashed #FF6347;"></span> Margen Inferior</span>
+    <span><span class="box" style="background:#FF6347"></span> Margen Superior</span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    const fileInput = document.getElementById('fileInput');
+    const diaSelector = document.getElementById('dia');
+    const downloadBtn = document.getElementById('download');
+    const canvas = document.getElementById('grafico');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('tooltip');
+    const margin = 50;
+    let allData = {};
+    let datos = [];
+    let highlightIndex = -1;
+
+    fileInput.addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const data = new Uint8Array(ev.target.result);
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
+        const fname = file.name.replace(/\..+$/, '');
+        const parts = fname.split(/[_-]/);
+        const serviceName = parts.length > 1 ? parts[1].toLowerCase() : fname;
+        document.getElementById('chartTitle').textContent = serviceName;
+        const sheet = wb.Sheets['Nomina'] || wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { raw: false, cellDates: true, dateNF: 'yyyy-mm-dd' });
+        allData = {};
+        json.forEach(row => {
+          let rawF = row['Fecha'];
+          let fechaKey = rawF instanceof Date ? rawF.toISOString().split('T')[0] : String(rawF).split(' ')[0];
+          let rawI = row['Intervalo'];
+          let intervaloLabel = '';
+          if (rawI instanceof Date) {
+            const hh = String(rawI.getHours()).padStart(2,'0');
+            const mm = String(rawI.getMinutes()).padStart(2,'0');
+            intervaloLabel = `${hh}:${mm}`;
+          } else if (typeof rawI === 'number') {
+            const totalMin = Math.round(rawI * 24 * 60);
+            const hh = String(Math.floor(totalMin/60)).padStart(2,'0');
+            const mm = String(totalMin%60).padStart(2,'0');
+            intervaloLabel = `${hh}:${mm}`;
+          } else {
+            const s = String(rawI);
+            if (s.includes(':')) {
+              const partsI = s.split(':');
+              intervaloLabel = `${partsI[0].padStart(2,'0')}:${partsI[1].padStart(2,'0')}`;
+            } else intervaloLabel = s;
+          }
+          if (!allData[fechaKey]) allData[fechaKey] = [];
+          allData[fechaKey].push({ intervalo: intervaloLabel, asignados: +row['Asignados'], requeridos: +row['Requeridos'], limInf: +row['Limite Inferior'], limSup: +row['Limite Superior'] });
+        });
+        diaSelector.innerHTML = '';
+        Object.keys(allData).forEach(key => {
+          const [y,m,d] = key.split('-');
+          const opt = document.createElement('option'); opt.value = key; opt.textContent = `${d}/${m}`;
+          diaSelector.appendChild(opt);
+        });
+        diaSelector.disabled = false;
+        downloadBtn.disabled = false;
+        const firstText = diaSelector.options[0].text;
+        document.getElementById('chartTitle').textContent = `${serviceName} - ${firstText}`;
+        diaSelector.dispatchEvent(new Event('change'));
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    diaSelector.addEventListener('change', () => {
+      datos = allData[diaSelector.value] || [];
+      highlightIndex = -1;
+      const selText = diaSelector.options[diaSelector.selectedIndex].text;
+      const service = document.getElementById('chartTitle').textContent.split(' - ')[0];
+      document.getElementById('chartTitle').textContent = `${service} - ${selText}`;
+      drawChart();
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const pdf = new jsPDF({ orientation: 'landscape' });
+      // agregar título en PDF
+      const title = document.getElementById('chartTitle').textContent;
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(title, pdf.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+      // agregar imagen del gráfico
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+      const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
+      pdf.addImage(imgData, 'PNG', 10, 20, pdfWidth, pdfHeight);
+      pdf.save(`${title}.pdf`);
+    });
+
+    function puntosDesdeDatos() {
+      if (!datos.length) return [];
+      const maxVal = Math.max(...datos.map(d=>Math.max(d.asignados,d.requeridos,d.limSup))) + 5;
+      const stepX = (canvas.width - 2 * margin) / (datos.length - 1);
+      const unitY = (canvas.height - 2 * margin) / maxVal;
+      return datos.map((d,i)=>({ x: margin+i*stepX, y: canvas.height-margin-d.asignados*unitY, yReq: canvas.height-margin-d.requeridos*unitY, yInf: canvas.height-margin-d.limInf*unitY, ySup: canvas.height-margin-d.limSup*unitY, label: d.intervalo, val: d.asignados, req: d.requeridos, inf: d.limInf, sup: d.limSup }));
+    }
+
+    function drawChart() {
+      const puntos = puntosDesdeDatos();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0d2a3d'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (!puntos.length) return;
+      const maxVal = Math.max(...datos.map(d=>Math.max(d.asignados,d.requeridos,d.limSup))) + 5;
+      ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(margin, margin); ctx.lineTo(margin, canvas.height - margin); ctx.lineTo(canvas.width - margin, canvas.height - margin); ctx.stroke();
+      const numY=5; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle='#ccc'; ctx.font='10px sans-serif';
+      for(let i=0;i<=numY;i++){ const y=margin+i*(canvas.height-2*margin)/numY; const v=Math.round(maxVal-i*(maxVal/numY)); ctx.fillText(v, margin-8, y); ctx.beginPath(); ctx.moveTo(margin-4,y); ctx.lineTo(margin,y); ctx.stroke(); }
+      ctx.fillStyle='#ccc'; ctx.font='10px sans-serif';
+      puntos.forEach(p=>{ ctx.save(); ctx.translate(p.x, canvas.height-margin+14); ctx.rotate(-Math.PI/2); ctx.fillText(p.label,0,0); ctx.restore(); });
+      puntos.forEach(p=>{ const h=canvas.height-margin-p.yReq; ctx.fillStyle='#999'; ctx.fillRect(p.x-4,p.yReq,8,h); });
+      ctx.beginPath(); puntos.forEach(p=>ctx.lineTo(p.x,p.yInf)); ctx.setLineDash([4,2]); ctx.strokeStyle='#FF6347'; ctx.stroke();
+      ctx.beginPath(); puntos.forEach(p=>ctx.lineTo(p.x,p.ySup)); ctx.setLineDash([]); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(puntos[0].x,puntos[0].y);
+      for(let i=1;i<puntos.length-1;i++){ const xc=(puntos[i].x+puntos[i+1].x)/2; const yc=(puntos[i].y+puntos[i+1].y)/2; ctx.quadraticCurveTo(puntos[i].x,puntos[i].y,xc,yc);} 
+      ctx.quadraticCurveTo(puntos[puntos.length-1].x,puntos[puntos.length-1].y,puntos[puntos.length-1].x,puntos[puntos.length-1].y);
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+      ctx.lineTo(puntos[puntos.length-1].x, canvas.height-margin); ctx.lineTo(puntos[0].x, canvas.height-margin); ctx.closePath();
+      const grad=ctx.createLinearGradient(0,margin,0,canvas.height-margin); grad.addColorStop(0,'rgba(46,196,182,0.3)'); grad.addColorStop(1,'rgba(46,196,182,0)'); ctx.fillStyle=grad; ctx.fill();
+      puntos.forEach((p,i)=>{ if(i===highlightIndex){ ctx.beginPath(); ctx.moveTo(p.x,margin); ctx.lineTo(p.x,canvas.height-margin); ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);} ctx.beginPath(); ctx.arc(p.x,p.y,3,0,2*Math.PI); ctx.fillStyle='#fff'; ctx.fill(); });
+    }
+
+    canvas.addEventListener('mousemove',evt=>{ const rect=canvas.getBoundingClientRect(); const mx=evt.clientX-rect.left; const my=evt.clientY-rect.top; const pts=puntosDesdeDatos(); tooltip.style.display='none'; highlightIndex=-1; pts.forEach((p,i)=>{ if(Math.hypot(mx-p.x,my-p.y)<6){ tooltip.style.left=`${evt.clientX+10}px`; tooltip.style.top=`${evt.clientY+10}px`; tooltip.innerHTML=`<strong>${p.label}</strong><br>Asignados: ${p.val}<br>Requeridos: ${p.req}<br>Margen: ${p.inf}-${p.sup}`; tooltip.style.display='block'; highlightIndex=i; } }); drawChart(); });
+  </script>
+</body>
+</html>
