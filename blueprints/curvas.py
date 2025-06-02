@@ -16,3 +16,7 @@ curvas_bp = Blueprint(
 def index():
     # Ahora renderizamos directamente curvas.html
     return render_template('curvas.html', title='Graficador')
+
+@curvas_bp.route('/merge')
+def merge():
+    return render_template('merge.html')
