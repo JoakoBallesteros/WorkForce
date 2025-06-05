@@ -1,7 +1,14 @@
 import os
 import re
-from flask import Flask, redirect, url_for, render_template, request, session, flash
+import tempfile
+from flask import (
+    Flask, redirect, url_for, render_template,
+    request, session, flash, send_file
+)
 from werkzeug.utils import secure_filename
+
+# Importamos tu clase PersonalService y los mapas de servicios
+from services.personal_service import PersonalService
 from services import SERVICES, SERVICE_LABELS
 
 
@@ -20,15 +27,11 @@ default_blueprints = [
     # agregar otros blueprints aquí...
 ]
 
-# Servicios disponibles para selector
-from services import SERVICES as SERVICE_MAP
-
-# Inicializar la app de Flask
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = os.getenv("SECRET_KEY", "clave_insegura_dev")
 app.config['UPLOAD_FOLDER'] = os.path.abspath(os.path.dirname(__file__))
 
-# Registrar blueprints dinámicamente (después de crear app)
+# Registramos todos los blueprints automáticamente
 for bp in default_blueprints:
     app.register_blueprint(bp)
 
@@ -63,7 +66,6 @@ def login():
 
     return render_template('login.html', title='Login')
 
-from services import SERVICES, SERVICE_LABELS
 
 @app.route('/selector', methods=['GET', 'POST'])
 def selector():
@@ -71,20 +73,49 @@ def selector():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        servicio = request.form['servicio'].lower()
-        if servicio not in SERVICES:
-            flash('Debes seleccionar un servicio válido.', 'warning')
-        else:
-            session['servicio'] = servicio
-            return redirect(url_for('upload_nomina'))
+        # Bajamos a minúsculas para comparar con la clave de SERVICES
+        servicio = request.form.get('servicio', '').strip().lower()
 
-    # pasamos lista de tuplas (clave, etiqueta) al template
-    opciones = [(k, SERVICE_LABELS[k]) for k in SERVICES.keys()]
+        # Validamos que el valor sea uno de los keys de SERVICES **o "all"**
+        if servicio not in (list(SERVICES.keys()) + ["all"]):
+            flash('Debes seleccionar un servicio válido.', 'warning')
+            return render_template(
+                'selector.html',
+                title='Selecciona Servicio',
+                opciones=_build_opciones()  # reconstruimos la lista al volver
+            )
+
+        # Si llega aquí, valor válido → lo guardamos en session y redirigimos
+        session['servicio'] = servicio
+        return redirect(url_for('upload_nomina'))
+
+    # Si es GET, mostramos la página con el select de servicios
     return render_template(
         'selector.html',
         title='Selecciona Servicio',
-        opciones=opciones
+        opciones=_build_opciones()
     )
+
+
+def _build_opciones():
+    """
+    Construye la lista de tuplas (clave, etiqueta) para rellenar el <select>.
+    Fuerza a que “all” (Todos los servicios) sea la primera opción.
+    El resto se toma de SERVICES + SERVICE_LABELS para mostrar la etiqueta.
+    """
+    opciones = []
+    
+
+    # 2) Luego agregamos (clave, SERVICE_LABELS[clave]) para cada servicio individual
+    #    SERVICES es un dict que en tu proyecto mapea lowercase → algo, y SERVICE_LABELS
+    #    mapea lowercase → “Etiqueta a mostrar en el select”. 
+    for key in SERVICES.keys():
+        # Ejemplo: key == "sop_conectividad", SERVICE_LABELS[key] == "Sop Conectividad"
+        opciones.append((key, SERVICE_LABELS[key]))
+
+    return opciones
+
+
 @app.route('/nomina', methods=['GET', 'POST'])
 def upload_nomina():
     if not session.get('logged_in'):
@@ -96,16 +127,21 @@ def upload_nomina():
         nomina_file = request.files.get('nomina')
         if not nomina_file:
             flash('Selecciona un archivo de nómina (.xlsx)', 'warning')
-        elif not nomina_file.filename.lower().endswith('.xlsx'):
+            return render_template('nomina.html', title='Carga de Nómina')
+
+        if not nomina_file.filename.lower().endswith('.xlsx'):
             flash('El archivo debe tener formato .xlsx', 'warning')
-        else:
-            filename = secure_filename('nomina.xlsx')
-            path     = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            nomina_file.save(path)
-            session['nomina_path'] = path
-            return redirect(url_for('menu'))
+            return render_template('nomina.html', title='Carga de Nómina')
+
+        # Guardamos siempre con el mismo nombre “nomina.xlsx” en la carpeta UPLOAD_FOLDER
+        filename = secure_filename('nomina.xlsx')
+        path     = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        nomina_file.save(path)
+        session['nomina_path'] = path
+        return redirect(url_for('menu'))
 
     return render_template('nomina.html', title='Carga de Nómina')
+
 
 @app.route('/menu')
 def menu():
@@ -116,8 +152,7 @@ def menu():
     if 'nomina_path' not in session:
         return redirect(url_for('upload_nomina'))
 
-    # Normalizamos a minúsculas para el blueprint de programación
-    provider = session['servicio'].lower()
+    provider = session['servicio']  # Ya viene en minúsculas
     programacion_url = url_for(f"{provider}.programacion")
     conversor_url     = url_for("conversor.conversor")
     curvas_url       = url_for("curvas.index")
@@ -130,10 +165,13 @@ def menu():
         curvas_url=curvas_url
     )
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
 if __name__ == '__main__':
+    # Debug durante desarrollo; en producción quita debug=True
     app.run(debug=True)

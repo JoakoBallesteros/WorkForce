@@ -4,33 +4,91 @@
   <meta charset="UTF-8">
   <title>Gráfico Interactivo desde Excel</title>
   <style>
-    body { margin: 0; background: #0d2a3d; font-family: sans-serif; color: white; }
-    .selector { text-align: center; margin: 20px auto; }
-    select, input[type=file], button { 
-      padding: 5px 10px; 
-      font-size: 14px; 
-      margin: 0 10px; 
+    body {
+      margin: 0;
+      background: #0d2a3d;
+      font-family: sans-serif;
+      color: white;
+    }
+    .selector {
+      text-align: center;
+      margin: 20px auto;
+      position: relative;
+    }
+    .btn-back {
+      /* Eliminamos el position:absolute para que fluya junto con los demás */
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      font-size: 0.9rem;
       cursor: pointer;
+      transition: background 0.3s ease;
+      margin-right: 25px; /* Pequeño espacio a la derecha */
     }
-    canvas { display: block; margin: 10px auto; border: 1px solid #ccc; background: #0d2a3d; }
-    .tooltip { 
-      position: absolute; 
-      background: rgba(20,20,20,0.95); 
-      color: #eee; 
-      padding: 4px 8px; 
-      border-radius: 4px; 
-      font-size: 12px; 
-      pointer-events: none; 
-      display: none; 
-      z-index: 10; 
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
-    .legend { text-align: center; margin-top: 10px; }
-    .legend span { display: inline-block; margin: 0 12px; font-size: 14px; }
-    .box { width: 12px; height: 12px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    select,
+    input[type=file],
+    button {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin: 0 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #000;
+    }
+    select:disabled,
+    input[type=file]:disabled,
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    canvas {
+      display: block;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      background: #0d2a3d;
+    }
+    .tooltip {
+      position: absolute;
+      background: rgba(20,20,20,0.95);
+      color: #eee;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+    .legend {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .legend span {
+      display: inline-block;
+      margin: 0 12px;
+      font-size: 14px;
+    }
+    .box {
+      width: 12px;
+      height: 12px;
+      display: inline-block;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
   <div class="selector">
+    <!-- Botón de volver alineado con los demás -->
+    <button class="btn-back" onclick="history.back()">Volver</button>
+
     <input type="file" id="fileInput" accept=".xlsx" />
     <label for="dia">Seleccionar día:</label>
     <select id="dia" disabled></select>
@@ -46,7 +104,7 @@
     <span><span class="box" style="background:#ffffff"></span> Asignados</span>
     <span><span class="box" style="background:#999"></span> Requeridos</span>
     <span><span class="box" style="background:#FF6347; border-bottom:2px dashed #FF6347;"></span> Margen Inferior</span>
-    <span><span class="box" style="background:#FF6347"></span> Margen Superior</span>
+    <span><span class="box" style="background:#FFFF00; border-bottom:2px dashed #FFFF00;"></span> Margen Superior</span>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -235,24 +293,35 @@
         ctx.fillRect(p.x - 4, p.yReq, 8, h);
       });
 
-      // Márgenes inferior / superior
+      // Margen Inferior (línea discontinua en rojo/anaranjado)
       ctx.beginPath();
-      puntos.forEach(p => ctx.lineTo(p.x, p.yInf));
+      puntos.forEach((p, idx) => {
+        if (idx === 0) ctx.moveTo(p.x, p.yInf);
+        else ctx.lineTo(p.x, p.yInf);
+      });
       ctx.setLineDash([4,2]);
       ctx.strokeStyle = '#FF6347';
       ctx.stroke();
 
+      // Margen Superior (línea discontinua en amarillo)
       ctx.beginPath();
-      puntos.forEach(p => ctx.lineTo(p.x, p.ySup));
-      ctx.setLineDash([]);
+      puntos.forEach((p, idx) => {
+        if (idx === 0) ctx.moveTo(p.x, p.ySup);
+        else ctx.lineTo(p.x, p.ySup);
+      });
+      ctx.setLineDash([4,2]);
+      ctx.strokeStyle = '#FFFF00';
       ctx.stroke();
+
+      // Restaurar trazo sólido
+      ctx.setLineDash([]);
 
       // Curva asignados con relleno
       ctx.beginPath();
       ctx.moveTo(puntos[0].x, puntos[0].y);
       for (let i = 1; i < puntos.length - 1; i++) {
-        const xc = (puntos[i].x + puntos[i+1].x)/2;
-        const yc = (puntos[i].y + puntos[i+1].y)/2;
+        const xc = (puntos[i].x + puntos[i+1].x) / 2;
+        const yc = (puntos[i].y + puntos[i+1].y) / 2;
         ctx.quadraticCurveTo(puntos[i].x, puntos[i].y, xc, yc);
       }
       ctx.quadraticCurveTo(
@@ -275,7 +344,7 @@
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Puntos y línea vertical cuando haga hover
+      // Puntos y línea vertical cuando haya hover
       puntos.forEach((p, i) => {
         if (i === highlightIndex) {
           ctx.beginPath();

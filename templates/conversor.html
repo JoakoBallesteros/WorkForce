@@ -5,7 +5,7 @@
     <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='conversor.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/logo.png') }}" type="image/x-icon">
 </head>
 <body>
     <!-- Botón de volver -->
@@ -16,7 +16,7 @@
     <!-- Fondo translúcido -->
     <div class="background-overlay"></div>
 
-    <!-- Contenido centrado -->
+    <!-- Contenedor centrado -->
     <div class="wrapper">
         <form class="conversor-form" method="POST" enctype="multipart/form-data">
             <h2><i class="fa fa-exchange-alt"></i> Conversor</h2>
@@ -24,8 +24,17 @@
             <div class="form-group">
                 <label for="servicio"><i class="fa fa-satellite-dish"></i> Servicio</label>
                 <select name="servicio" id="servicio" required>
+                    <!-- Opción por defecto deshabilitada -->
+                    <option disabled selected value="">Selecciona un servicio</option>
+
                     {% for s in services %}
-                    <option value="{{ s }}">{{ s.replace('_', ' ') }}</option>
+                        {% if s == 'ALL' %}
+                            <!-- Si el valor es "ALL", mostramos "Todos los servicios" -->
+                            <option value="ALL">Todos los servicios</option>
+                        {% else %}
+                            <!-- Para el resto, reemplazamos guiones bajos por espacios -->
+                            <option value="{{ s }}">{{ s.replace('_', ' ') }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -52,6 +61,7 @@
                 </div>
                 {% endif %}
             {% endwith %}
+
         </form>
     </div>
 </body>

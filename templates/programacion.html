@@ -5,7 +5,7 @@
     <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='programacion.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="shortcut icon" href="../static/img/logo.png" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/logo.png') }}" type="image/x-icon">
 </head>
 <body>
     <!-- Botón pequeño de “Volver” -->
@@ -19,12 +19,14 @@
     <!-- Contenedor centrado -->
     <div class="wrapper">
         <form class="form-box" method="POST" enctype="multipart/form-data">
-            <h2><i class="fa fa-calendar-alt"></i> Generador de Programacion</h2>
+            <h2><i class="fa fa-calendar-alt"></i> Generador de Programación</h2>
 
             <div class="form-group">
                 <label for="servicio"><i class="fa fa-sitemap"></i> Servicio</label>
                 <select name="servicio" id="servicio" required>
                     <option disabled selected>Selecciona un servicio</option>
+                    <!-- IMPORTANTE: el value="ALL" debe coincidir con lo que valida app.py -->
+                    <option value="ALL">Todos los servicios</option>
                     <option value="Sop_Conectividad">Sop Conectividad</option>
                     <option value="Sop_Flow">Sop Flow</option>
                     <option value="Esp_CATV">Esp CATV</option>
@@ -32,10 +34,21 @@
                     <option value="Esp_XDSL">Esp XDSL</option>
                     <option value="Digital">Digital</option>
                     <option value="CBS">CBS</option>
-                    <option value="SMB_TecnicaIN">SMB Técnica IN</option>
-                    <option value="SMB_Digital">SMB Digital</option>
                 </select>
             </div>
+
+
+                <div class="form-group">
+        <label for="periodo"><i class="fa fa-clock"></i> Periodo</label>
+        <select name="periodo" id="periodo" required>
+            <option disabled selected>Selecciona el periodo</option>
+            <option value="mes">Mes completo</option>
+            <option value="sem1">Semana 1</option>
+            <option value="sem2">Semana 2</option>
+            <option value="sem3">Semana 3</option>
+            <option value="sem4">Semana 4</option>
+        </select>
+    </div>
 
             <div class="form-group">
                 <label for="requeridos"><i class="fa fa-file-excel"></i> Archivo Requeridos (.xlsx)</label>
