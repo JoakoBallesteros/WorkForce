@@ -10,13 +10,7 @@ from werkzeug.utils import secure_filename
 
 # Carga variables de entorno desde .env
 load_dotenv()
-print("► SECRET_KEY repr: ", repr(os.getenv("SECRET_KEY")))
-print("► CRED_USER1 repr:", repr(os.getenv("CRED_USER1")))
-print("► CRED_PWD1 repr: ", repr(os.getenv("CRED_PWD1")))
-print("► CRED_USER2 repr:", repr(os.getenv("CRED_USER2")))
-print("► CRED_PWD2 repr: ", repr(os.getenv("CRED_PWD2")))
-print("► CRED_USER3 repr:", repr(os.getenv("CRED_USER3")))
-print("► CRED_PWD3 repr: ", repr(os.getenv("CRED_PWD3")))
+
 # Importamos tu clase PersonalService y los mapas de servicios
 from services.personal_service import PersonalService
 from services import SERVICES, SERVICE_LABELS
