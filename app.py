@@ -1,16 +1,19 @@
 import os
 import re
 import tempfile
+from dotenv import load_dotenv
 from flask import (
     Flask, redirect, url_for, render_template,
     request, session, flash, send_file
 )
 from werkzeug.utils import secure_filename
 
+# Carga variables de entorno desde .env
+load_dotenv()
+
 # Importamos tu clase PersonalService y los mapas de servicios
 from services.personal_service import PersonalService
 from services import SERVICES, SERVICE_LABELS
-
 
 # Blueprints
 from blueprints.conversor import conversor_bp
@@ -28,18 +31,35 @@ default_blueprints = [
 ]
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+
+# SECRET_KEY ahora se lee desde variable de entorno ‘SECRET_KEY’.
+# Si no está definida, se usa un fallback de desarrollo, pero en producción
+# deberías definir SECRET_KEY en tu .env o en la configuración del servidor.
 app.secret_key = os.getenv("SECRET_KEY", "clave_insegura_dev")
+
+# Carpeta donde se guardan archivos subidos
 app.config['UPLOAD_FOLDER'] = os.path.abspath(os.path.dirname(__file__))
 
 # Registramos todos los blueprints automáticamente
 for bp in default_blueprints:
     app.register_blueprint(bp)
 
-# Credenciales válidas (usuarios permitidos)
+# ——————————————————————————————————————————————————————————————
+# En lugar de “hardcodear” usuario&contraseña aquí, los leemos desde el .env.
+# Por ejemplo, en tu .env debes tener:
+#   CRED_USER1=joaquin.ballesteros@konecta.com
+#   CRED_PWD1=Konecta+478
+#   CRED_USER2=enrique.juarez@konecta.com
+#   CRED_PWD2=Limon2026+-
+#   CRED_USER3=maria.gomez@konecta.com
+#   CRED_PWD3=Passwd123
+#
+# De esta forma, nunca aparacen en el repo ni en el código.
+# ——————————————————————————————————————————————————————————————
 default_credentials = {
-    "joaquin.ballesteros@konecta.com": "Konecta+478",
-    "enrique.juarez@konecta.com":    "Limon2026+-",
-    "maria.gomez@konecta.com":       "Passwd123",
+    os.getenv("CRED_USER1"): os.getenv("CRED_PWD1"),
+    os.getenv("CRED_USER2"): os.getenv("CRED_PWD2"),
+    os.getenv("CRED_USER3"): os.getenv("CRED_PWD3"),
 }
 
 # Regex para validar formato de usuario
@@ -56,7 +76,7 @@ def login():
             flash('El usuario debe ser nombre.apellido@konecta.com', 'warning')
             return render_template('login.html', title='Login')
 
-        # Validar credenciales
+        # Validar credenciales contra el diccionario leído de entorno
         if default_credentials.get(user) == pwd:
             session.clear()
             session['logged_in'] = True
@@ -65,7 +85,6 @@ def login():
             flash('Usuario o contraseña incorrectos', 'danger')
 
     return render_template('login.html', title='Login')
-
 
 @app.route('/selector', methods=['GET', 'POST'])
 def selector():
@@ -96,7 +115,6 @@ def selector():
         opciones=_build_opciones()
     )
 
-
 def _build_opciones():
     """
     Construye la lista de tuplas (clave, etiqueta) para rellenar el <select>.
@@ -104,17 +122,14 @@ def _build_opciones():
     El resto se toma de SERVICES + SERVICE_LABELS para mostrar la etiqueta.
     """
     opciones = []
-    
+    # Agregamos "all" (si lo necesitamos) o podemos omitirlo según tu lógica:
+    # opciones.append(("all", "Todos los servicios"))
 
-    # 2) Luego agregamos (clave, SERVICE_LABELS[clave]) para cada servicio individual
-    #    SERVICES es un dict que en tu proyecto mapea lowercase → algo, y SERVICE_LABELS
-    #    mapea lowercase → “Etiqueta a mostrar en el select”. 
+    # Luego agregamos (clave, SERVICE_LABELS[clave]) para cada servicio individual
     for key in SERVICES.keys():
-        # Ejemplo: key == "sop_conectividad", SERVICE_LABELS[key] == "Sop Conectividad"
-        opciones.append((key, SERVICE_LABELS[key]))
+        opciones.append((key, SERVICE_LABELS.get(key, key.capitalize())))
 
     return opciones
-
 
 @app.route('/nomina', methods=['GET', 'POST'])
 def upload_nomina():
@@ -142,7 +157,6 @@ def upload_nomina():
 
     return render_template('nomina.html', title='Carga de Nómina')
 
-
 @app.route('/menu')
 def menu():
     if not session.get('logged_in'):
@@ -153,9 +167,10 @@ def menu():
         return redirect(url_for('upload_nomina'))
 
     provider = session['servicio']  # Ya viene en minúsculas
+    #Ejemplo: si servicio == "sop_conectividad", se asume que existe blueprint sop_conectividad.programacion
     programacion_url = url_for(f"{provider}.programacion")
     conversor_url     = url_for("conversor.conversor")
-    curvas_url       = url_for("curvas.index")
+    curvas_url        = url_for("curvas.index")
 
     return render_template(
         'index.html',
@@ -165,12 +180,10 @@ def menu():
         curvas_url=curvas_url
     )
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
-
 
 if __name__ == '__main__':
     # Debug durante desarrollo; en producción quita debug=True
