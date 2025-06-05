@@ -11,6 +11,8 @@ from werkzeug.utils import secure_filename
 # Carga variables de entorno desde .env
 load_dotenv()
 
+print("→ RAW CRED_USER1 repr:", repr(os.getenv("CRED_USER1")))
+print("→ RAW CRED_PWD1 repr:", repr(os.getenv("CRED_PWD1")))
 # Importamos tu clase PersonalService y los mapas de servicios
 from services.personal_service import PersonalService
 from services import SERVICES, SERVICE_LABELS
@@ -45,16 +47,7 @@ for bp in default_blueprints:
     app.register_blueprint(bp)
 
 # ——————————————————————————————————————————————————————————————
-# En lugar de “hardcodear” usuario&contraseña aquí, los leemos desde el .env.
-# Por ejemplo, en tu .env debes tener:
-#   CRED_USER1=joaquin.ballesteros@konecta.com
-#   CRED_PWD1=Konecta+478
-#   CRED_USER2=enrique.juarez@konecta.com
-#   CRED_PWD2=Limon2026+-
-#   CRED_USER3=maria.gomez@konecta.com
-#   CRED_PWD3=Passwd123
-#
-# De esta forma, nunca aparacen en el repo ni en el código.
+
 # ——————————————————————————————————————————————————————————————
 default_credentials = {
     os.getenv("CRED_USER1"): os.getenv("CRED_PWD1"),
